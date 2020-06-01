@@ -28,7 +28,7 @@ class Adapter:
     @classmethod
     def create_from(cls, acpi_output: str) -> "Adapter":
         pattern = re.compile(r"Adapter \d+: (?P<status>(on|off)-line)")
-        return Adapter(pattern.match(acpi_output)["status"])
+        return cls(pattern.match(acpi_output)["status"])
 
     @property
     def is_connected(self) -> bool:
@@ -39,18 +39,16 @@ class Adapter:
 class Battery:
     status: str
     level: int
-    adapter: Adapter
 
     @classmethod
-    def create_from(cls, acpi_output: str, adapter: Adapter) -> "Battery":
+    def create_from(cls, acpi_output: str) -> "Battery":
         pattern = re.compile(
             r"Battery \d+: (?P<status>\w+), (?P<level>\d+)%,(?P<remainder>.*)"
         )
         match = pattern.match(acpi_output)
-        return Battery(
+        return cls(
                 status=match["status"],
                 level=int(match["level"]),
-                adapter=adapter
                 )
 
     @property
@@ -62,25 +60,42 @@ class Battery:
         return self.adapter.is_connected
 
 
-def create_battery(acpi_output: str) -> Battery:
-    [adapter_output] = [
-        out for out in acpi_output.split("\n") if out.startswith("Adapter")
-    ]
-    adapter = Adapter.create_from(adapter_output)
+@dataclasses.dataclass
+class BatteryStatus:
+    battery: Battery
+    adapter: Adapter
 
-    [battery_output] = [
-        out for out in acpi_output.split("\n") if out.startswith("Battery")
-    ]
-    battery = Battery.create_from(battery_output, adapter)
+    @classmethod
+    def create_from(cls, acpi_output: str) -> "BatteryStatus":
+        [adapter_output] = [
+            out for out in acpi_output.split("\n") if out.startswith("Adapter")
+        ]
+        adapter = Adapter.create_from(adapter_output)
 
-    return battery
+        [battery_output] = [
+            out for out in acpi_output.split("\n") if out.startswith("Battery")
+        ]
+        battery = Battery.create_from(battery_output)
+
+        return cls(battery, adapter)
+
+    @property
+    def is_plugged(self) -> bool:
+        return self.adapter.is_connected
+
+    @property
+    def level(self) -> int:
+        return self.battery.level
 
 
 def colorize(text: str, color: str) -> str:
     return f"<span color=\"{color}\">{text}</span>"
 
 
-def generate_markup(battery: Battery) -> str:
+def generate_markup(battery: Battery, adapter: Adapter) -> str:
+    if adapter.is_connected:
+        return f"{BatteryIcon.PLUGGED} {battery.level}%"
+
     if battery.level == 100:
         return f"{BatteryIcon.FULL} {battery.level}%"
     elif battery.level < 100 and battery.level >= 75:
