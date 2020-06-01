@@ -95,5 +95,5 @@ def generate_markup(battery: Battery) -> str:
 
 
 if __name__ == "__main__":
-    acpi = subprocess.run(["acpi", "-ab"], capture_output=True)
+    acpi = subprocess.run(["acpi", "-ab"], capture_output=True, encoding="utf-8")
     battery = create_battery(acpi.stdout)
