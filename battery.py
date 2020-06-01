@@ -108,12 +108,10 @@ def generate_markup(battery: Battery, adapter: Adapter) -> str:
         return colorize(text, color="#d79921")
 
     charge = Charge.dispatch(battery.level)
-    text = f"{charge} {battery.level}%"
-
     if charge == Charge.EMPTY:
-        markup = colorize(text, "#ff0000")
+        markup = f"{colorize(charge, '#dff0000')} {battery.level}%"
     else:
-        markup = colorize(text, "#d79921")
+        markup = f"{colorize(charge, '#d79921')} {battery.level}%"
 
     return markup
 
