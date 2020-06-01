@@ -118,7 +118,8 @@ def generate_markup(battery: Battery, adapter: Adapter) -> str:
     return markup
 
 
-
 if __name__ == "__main__":
     acpi = subprocess.run(["acpi", "-ab"], capture_output=True, encoding="utf-8")
-    battery = create_battery(acpi.stdout)
+    status = BatteryStatus.create_from(acpi.stdout)
+    markup = generate_markup(status.battery, status.adapter)
+    print(markup)
