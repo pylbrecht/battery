@@ -9,7 +9,7 @@ import re
 import subprocess
 
 
-class BatteryIcon(enum.Enum):
+class Charge(enum.Enum):
     FULL = "\uf240"
     EMPTY = "\uf244"
     HALF = "\uf242"
@@ -19,6 +19,19 @@ class BatteryIcon(enum.Enum):
 
     def __str__(self):
         return self.value
+
+    @classmethod
+    def dispatch(cls, level: int):
+        if level == 100:
+            return cls.FULL
+        elif level < 100 and level >= 75:
+            return cls.THREE_QUARTERS
+        elif level < 75 and level >= 50:
+            return cls.HALF
+        elif level < 50 and level >= 25:
+            return cls.QUARTER
+        elif level <= 5:
+            return cls.EMPTY
 
 
 @dataclasses.dataclass
@@ -91,19 +104,19 @@ def colorize(text: str, color: str) -> str:
 
 def generate_markup(battery: Battery, adapter: Adapter) -> str:
     if adapter.is_connected:
-        return f"{BatteryIcon.PLUGGED} {battery.level}%"
+        text = f"{Charge.PLUGGED} {battery.level}%"
+        return colorize(text, color="#d79921")
 
-    if battery.level == 100:
-        return f"{BatteryIcon.FULL} {battery.level}%"
-    elif battery.level < 100 and battery.level >= 75:
-        return f"{BatteryIcon.THREE_QUARTERS} {battery.level}%"
-    elif battery.level < 75 and battery.level >= 50:
-        return f"{BatteryIcon.HALF} {battery.level}%"
-    elif battery.level < 50 and battery.level >= 25:
-        return f"{BatteryIcon.QUARTER} {battery.level}%"
-    elif battery.level <= 5:
-        text = f"{BatteryIcon.EMPTY} {battery.level}%"
-        return colorize(text, "#ff0000")
+    charge = Charge.dispatch(battery.level)
+    text = f"{charge} {battery.level}%"
+
+    if charge == Charge.EMPTY:
+        markup = colorize(text, "#ff0000")
+    else:
+        markup = colorize(text, "#d79921")
+
+    return markup
+
 
 
 if __name__ == "__main__":

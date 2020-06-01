@@ -46,20 +46,20 @@ def test_create_battery_status_from_acpi_output(acpi_output, plugged, level):
 @pytest.mark.parametrize(
     "battery,adapter,markup",
     [
-        (Battery("Charging", 100), Adapter("off-line"), f"{BatteryIcon.FULL} 100%"),
+        (Battery("Charging", 100), Adapter("off-line"), f"<span color=\"#d79921\">{Charge.FULL} 100%</span>"),
         (
             Battery("Charging", 75),
             Adapter("off-line"),
-            f"{BatteryIcon.THREE_QUARTERS} 75%",
+            f"<span color=\"#d79921\">{Charge.THREE_QUARTERS} 75%</span>",
         ),
-        (Battery("Charging", 50), Adapter("off-line"), f"{BatteryIcon.HALF} 50%"),
-        (Battery("Charging", 25), Adapter("off-line"), f"{BatteryIcon.QUARTER} 25%"),
+        (Battery("Charging", 50), Adapter("off-line"), f"<span color=\"#d79921\">{Charge.HALF} 50%</span>"),
+        (Battery("Charging", 25), Adapter("off-line"), f"<span color=\"#d79921\">{Charge.QUARTER} 25%</span>"),
         (
             Battery("Charging", 5),
             Adapter("off-line"),
-            f'<span color="#ff0000">{BatteryIcon.EMPTY} 5%</span>',
+            f'<span color="#ff0000">{Charge.EMPTY} 5%</span>',
         ),
-        (Battery("Charging", 5), Adapter("on-line"), f"{BatteryIcon.PLUGGED} 5%"),
+        (Battery("Charging", 5), Adapter("on-line"), f"<span color=\"#d79921\">{Charge.PLUGGED} 5%</span>"),
     ],
 )
 def test_generate_markup(battery, adapter, markup):
