@@ -46,10 +46,7 @@ class Battery:
             r"Battery \d+: (?P<status>\w+), (?P<level>\d+)%,(?P<remainder>.*)"
         )
         match = pattern.match(acpi_output)
-        return cls(
-                status=match["status"],
-                level=int(match["level"]),
-                )
+        return cls(status=match["status"], level=int(match["level"]),)
 
     @property
     def is_charging(self) -> bool:
@@ -89,7 +86,7 @@ class BatteryStatus:
 
 
 def colorize(text: str, color: str) -> str:
-    return f"<span color=\"{color}\">{text}</span>"
+    return f'<span color="{color}">{text}</span>'
 
 
 def generate_markup(battery: Battery, adapter: Adapter) -> str:
