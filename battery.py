@@ -4,8 +4,21 @@
 """
 
 import dataclasses
+import enum
 import re
 import subprocess
+
+
+class BatteryIcon(enum.Enum):
+    FULL = "\uf240"
+    EMPTY = "\uf244"
+    HALF = "\uf242"
+    THREE_QUARTERS = "\uf241"
+    QUARTER = "\uf243"
+    PLUGGED = "\uf1e6"
+
+    def __str__(self):
+        return self.value
 
 
 @dataclasses.dataclass
@@ -63,5 +76,24 @@ def create_battery(acpi_output: str) -> Battery:
     return battery
 
 
+def colorize(text: str, color: str) -> str:
+    return f"<span color=\"{color}\">{text}</span>"
+
+
+def generate_markup(battery: Battery) -> str:
+    if battery.level == 100:
+        return f"{BatteryIcon.FULL} {battery.level}%"
+    elif battery.level < 100 and battery.level >= 75:
+        return f"{BatteryIcon.THREE_QUARTERS} {battery.level}%"
+    elif battery.level < 75 and battery.level >= 50:
+        return f"{BatteryIcon.HALF} {battery.level}%"
+    elif battery.level < 50 and battery.level >= 25:
+        return f"{BatteryIcon.QUARTER} {battery.level}%"
+    elif battery.level <= 5:
+        text = f"{BatteryIcon.EMPTY} {battery.level}%"
+        return colorize(text, "#ff0000")
+
+
 if __name__ == "__main__":
-    pass
+    acpi = subprocess.run(["acpi", "-ab"], capture_output=True)
+    battery = create_battery(acpi.stdout)
