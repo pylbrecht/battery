@@ -9,13 +9,17 @@ import re
 import subprocess
 
 
-class Charge(enum.Enum):
-    FULL = "\uf240"
-    EMPTY = "\uf244"
-    HALF = "\uf242"
-    THREE_QUARTERS = "\uf241"
-    QUARTER = "\uf243"
-    PLUGGED = "\uf1e6"
+class Discharging(enum.Enum):
+    CHARGE_10 = "\uf579"
+    CHARGE_20 = "\uf57a"
+    CHARGE_30 = "\uf57b"
+    CHARGE_40 = "\uf57c"
+    CHARGE_50 = "\uf57d"
+    CHARGE_60 = "\uf57e"
+    CHARGE_70 = "\uf57f"
+    CHARGE_80 = "\uf580"
+    CHARGE_90 = "\uf581"
+    CHARGE_100 = "\uf578"
 
     def __str__(self):
         return self.value
@@ -23,16 +27,74 @@ class Charge(enum.Enum):
     @classmethod
     def dispatch(cls, level: int):
         if level == 100:
-            return cls.FULL
-        elif level < 100 and level >= 75:
-            return cls.THREE_QUARTERS
-        elif level < 75 and level >= 50:
-            return cls.HALF
-        elif level < 50 and level >= 25:
-            return cls.QUARTER
-        elif level <= 5:
-            return cls.EMPTY
+            return cls.CHARGE_100
+        elif level < 100 and level >= 90:
+            return cls.CHARGE_90
+        elif level < 90 and level >= 80:
+            return cls.CHARGE_80
+        elif level < 80 and level >= 70:
+            return cls.CHARGE_70
+        elif level < 70 and level >= 60:
+            return cls.CHARGE_60
+        elif level < 60 and level >= 50:
+            return cls.CHARGE_50
+        elif level < 50 and level >= 40:
+            return cls.CHARGE_40
+        elif level < 40 and level >= 30:
+            return cls.CHARGE_30
+        elif level < 30 and level >= 20:
+            return cls.CHARGE_20
+        elif level < 20 and level >= 10:
+            return cls.CHARGE_10
+        elif level < 10:
+            return cls.CHARGE_10
 
+    def is_critical(self):
+        return self == self.CHARGE_10
+
+
+class Charging(enum.Enum):
+    CHARGE_10 = "\uf585"
+    CHARGE_20 = "\uf586"
+    CHARGE_30 = "\uf587"
+    CHARGE_40 = "\uf588"
+    CHARGE_50 = "\uf589"
+    CHARGE_60 = "\uf58a"
+    CHARGE_70 = "\uf58b"
+    CHARGE_80 = "\uf58c"
+    CHARGE_90 = "\uf58d"
+    CHARGE_100 = "\uf584"
+
+    def __str__(self):
+        return self.value
+
+    @classmethod
+    def dispatch(cls, level: int):
+        if level == 100:
+            return cls.CHARGE_100
+        elif level < 100 and level >= 90:
+            return cls.CHARGE_90
+        elif level < 90 and level >= 80:
+            return cls.CHARGE_80
+        elif level < 80 and level >= 70:
+            return cls.CHARGE_70
+        elif level < 70 and level >= 60:
+            return cls.CHARGE_60
+        elif level < 60 and level >= 50:
+            return cls.CHARGE_50
+        elif level < 50 and level >= 40:
+            return cls.CHARGE_40
+        elif level < 40 and level >= 30:
+            return cls.CHARGE_30
+        elif level < 30 and level >= 20:
+            return cls.CHARGE_20
+        elif level < 20 and level >= 10:
+            return cls.CHARGE_10
+        elif level < 10:
+            return cls.CHARGE_10
+
+    def is_critical(self):
+        return self == self.CHARGE_10
 
 @dataclasses.dataclass
 class Adapter:
@@ -104,11 +166,11 @@ def colorize(text: str, color: str) -> str:
 
 def generate_markup(battery: Battery, adapter: Adapter) -> str:
     if adapter.is_connected:
-        text = f"{Charge.PLUGGED} {battery.level}%"
-        return colorize(text, color="#d79921")
+        charge = Charging.dispatch(battery.level)
+    else:
+        charge = Discharging.dispatch(battery.level)
 
-    charge = Charge.dispatch(battery.level)
-    if charge == Charge.EMPTY:
+    if charge.is_critical():
         markup = f"{colorize(charge, '#dff0000')} {battery.level}%"
     else:
         markup = f"{colorize(charge, '#d79921')} {battery.level}%"
